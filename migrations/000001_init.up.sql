@@ -17,7 +17,7 @@ CREATE TABLE orders (
 
 CREATE TABLE deliveries (
                             id SERIAL PRIMARY KEY,
-                            order_uid VARCHAR(255) NOT NULL UNIQUE REFERENCES order(order_uid) ON DELETE CASCADE,
+                            order_uid VARCHAR(255) NOT NULL UNIQUE REFERENCES orders(order_uid) ON DELETE CASCADE,
                             name VARCHAR(255) NOT NULL,
                             phone VARCHAR(50) NOT NULL,
                             zip VARCHAR(20) NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE deliveries (
 
 CREATE TABLE payments (
                           id SERIAL PRIMARY KEY,
-                          order_uid VARCHAR(255) NOT NULL UNIQUE REFERENCES order(order_uid) ON DELETE CASCADE,
+                          order_uid VARCHAR(255) NOT NULL UNIQUE REFERENCES orders(order_uid) ON DELETE CASCADE,
                           transaction VARCHAR(255) NOT NULL,
                           request_id VARCHAR(255),
                           currency VARCHAR(10) NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE payments (
 
 CREATE TABLE items (
                        id SERIAL PRIMARY KEY,
-                       order_uid VARCHAR(255) NOT NULL REFERENCES order(order_uid) ON DELETE CASCADE,
+                       order_uid VARCHAR(255) NOT NULL REFERENCES orders(order_uid) ON DELETE CASCADE,
                        chrt_id BIGINT NOT NULL,
                        track_number VARCHAR(255) NOT NULL,
                        price NUMERIC(12, 2) NOT NULL,

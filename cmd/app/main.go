@@ -1,9 +1,10 @@
 package main
 
 import (
-	"l0/internal/application"
-	"l0/internal/config"
-	"l0/internal/logger"
+	"context"
+	"github.com/Killazius/L0/internal/application"
+	"github.com/Killazius/L0/internal/config"
+	"github.com/Killazius/L0/internal/logger"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,6 +18,7 @@ func main() {
 	}
 	app := application.New(log, cfg)
 	go app.Server.MustRun()
+	go app.Consumer.Run(context.Background())
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop

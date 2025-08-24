@@ -3,12 +3,11 @@ package transport
 import (
 	"context"
 	"errors"
+	"github.com/Killazius/L0/internal/config"
+	"github.com/Killazius/L0/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/render"
 	"go.uber.org/zap"
-	"l0/internal/config"
-	"l0/internal/service"
 	"net/http"
 )
 
@@ -27,7 +26,6 @@ func NewServer(
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.URLFormat)
-	r.Use(render.SetContentType(render.ContentTypeJSON))
 
 	handler := newHandler(log, service)
 

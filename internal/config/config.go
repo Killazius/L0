@@ -16,6 +16,7 @@ type Config struct {
 	Postgres   PostgresConfig `yaml:"postgres"`
 	Logger     LoggerConfig   `yaml:"logger"`
 	HTTPServer HTTPConfig     `yaml:"http_server"`
+	Kafka      KafkaConfig    `yaml:"kafka"`
 }
 
 type HTTPConfig struct {
@@ -42,6 +43,21 @@ type PostgresConfig struct {
 
 type LoggerConfig struct {
 	Path string `yaml:"path"`
+}
+
+type KafkaConfig struct {
+	Brokers          []string      `yaml:"brokers"  env-default:"kafka:9092" env-separator:","`
+	Topic            string        `yaml:"topic" env-default:"orders"`
+	GroupID          string        `yaml:"group_id"  env-default:"order-service-group"`
+	AutoOffsetReset  string        `yaml:"auto_offset_reset" env-default:"earliest"`
+	SessionTimeout   time.Duration `yaml:"session_timeout" env-default:"30s"`
+	MaxWait          time.Duration `yaml:"max_wait" env-default:"10s"`
+	MinBytes         int           `yaml:"min_bytes"  env-default:"10240"`
+	MaxBytes         int           `yaml:"max_bytes" env-default:"10485760"`
+	MaxRetries       int           `yaml:"max_retries"  env-default:"3"`
+	RetryBackoff     time.Duration `yaml:"retry_backoff" env-default:"100ms"`
+	EnableAutoCommit bool          `yaml:"enable_auto_commit" env-default:"false"`
+	CommitInterval   time.Duration `yaml:"commit_interval" env-default:"1s"`
 }
 
 const (

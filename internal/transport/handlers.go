@@ -1,10 +1,10 @@
 package transport
 
 import (
+	"github.com/Killazius/L0/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 	"go.uber.org/zap"
-	"l0/internal/service"
 	"net/http"
 )
 
@@ -28,6 +28,11 @@ func (h *Handler) Info() http.HandlerFunc {
 			render.Status(r, http.StatusBadRequest)
 			return
 		}
-		render.JSON(w, r, orderUID)
+		order, err := h.service.GetOrder(r.Context(), orderUID)
+		if err != nil {
+			render.Status(r, http.StatusInternalServerError)
+			return
+		}
+		render.JSON(w, r, order)
 	}
 }
