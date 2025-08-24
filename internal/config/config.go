@@ -1,10 +1,8 @@
 package config
 
 import (
-	"context"
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"log"
 	"net"
@@ -111,31 +109,4 @@ func (h *HTTPConfig) GetAddr() string {
 }
 func (p *PostgresConfig) GetURL() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", p.Username, p.Password, p.Host, p.Port, p.Database, p.SSLMode)
-}
-
-func CreatePool(cfg PostgresConfig) (*pgxpool.Pool, error) {
-	poolConfig, err := pgxpool.ParseConfig(cfg.GetURL())
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse connection string: %w", err)
-	}
-
-	poolConfig.MaxConns = cfg.MaxOpenConns
-	poolConfig.MinConns = cfg.MaxIdleConns
-	poolConfig.MaxConnLifetime = cfg.ConnMaxLifetime
-	poolConfig.MaxConnIdleTime = cfg.ConnMaxIdleTime
-	poolConfig.ConnConfig.ConnectTimeout = cfg.Timeout
-
-	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create connection pool: %w", err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), cfg.Timeout)
-	defer cancel()
-
-	if err := pool.Ping(ctx); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
-	}
-
-	return pool, nil
 }

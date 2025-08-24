@@ -2,14 +2,19 @@ package logger
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go.uber.org/zap"
 	"os"
 )
 
+var ErrDefaultLogger = errors.New("default loggers")
+
 func LoadFromConfig(path string) (*zap.SugaredLogger, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, fmt.Errorf("logger config file does not exist: %s", path)
+		defaultLogger, _ := zap.NewDevelopment()
+		sugar := defaultLogger.Sugar()
+		return sugar, ErrDefaultLogger
 	}
 	configData, err := os.ReadFile(path)
 	if err != nil {
@@ -22,12 +27,6 @@ func LoadFromConfig(path string) (*zap.SugaredLogger, error) {
 	}
 
 	logger, err := cfg.Build()
-	defer func(logger *zap.Logger) {
-		err := logger.Sync()
-		if err != nil {
-			return
-		}
-	}(logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build logger from config %q: %w", path, err)
 	}

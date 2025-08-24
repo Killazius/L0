@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Killazius/L0/internal/config"
 	"github.com/Killazius/L0/internal/domain"
+	"github.com/Killazius/L0/internal/repository"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -20,6 +22,32 @@ func New(db *pgxpool.Pool) *Repository {
 func (r *Repository) Close() {
 	r.DB.Close()
 }
+func CreatePool(cfg config.PostgresConfig) (*pgxpool.Pool, error) {
+	poolConfig, err := pgxpool.ParseConfig(cfg.GetURL())
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse connection string: %w", err)
+	}
+
+	poolConfig.MaxConns = cfg.MaxOpenConns
+	poolConfig.MinConns = cfg.MaxIdleConns
+	poolConfig.MaxConnLifetime = cfg.ConnMaxLifetime
+	poolConfig.MaxConnIdleTime = cfg.ConnMaxIdleTime
+	poolConfig.ConnConfig.ConnectTimeout = cfg.Timeout
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create connection pool: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.Timeout)
+	defer cancel()
+
+	if err := pool.Ping(ctx); err != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", err)
+	}
+
+	return pool, nil
+}
 
 func (r *Repository) Create(ctx context.Context, order domain.Order) error {
 
@@ -33,7 +61,14 @@ func (r *Repository) Create(ctx context.Context, order domain.Order) error {
 			return
 		}
 	}(tx, ctx)
-
+	var exists bool
+	err = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM orders WHERE order_uid = $1)", order.OrderUID).Scan(&exists)
+	if err != nil {
+		return fmt.Errorf("failed to check order existence: %w", err)
+	}
+	if exists {
+		return repository.ErrDuplicateOrder
+	}
 	_, err = tx.Exec(ctx, `
         INSERT INTO "orders" (
             order_uid, track_number, entry, locale, internal_signature,
@@ -197,7 +232,7 @@ func (r *Repository) getOrder(ctx context.Context, tx pgx.Tx, orderUID string) (
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("order with UID %s not found", orderUID)
+			return nil, repository.ErrOrderNotFound
 		}
 		return nil, fmt.Errorf("failed to get order: %w", err)
 	}
@@ -227,7 +262,7 @@ func (r *Repository) getDelivery(ctx context.Context, tx pgx.Tx, orderUID string
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("delivery for order UID %s not found", orderUID)
+			return nil, repository.ErrDeliveryNotFound
 		}
 		return nil, fmt.Errorf("failed to get delivery: %w", err)
 	}
@@ -261,7 +296,7 @@ func (r *Repository) getPayment(ctx context.Context, tx pgx.Tx, orderUID string)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("payment for order UID %s not found", orderUID)
+			return nil, repository.ErrPaymentNotFound
 		}
 		return nil, fmt.Errorf("failed to get payment: %w", err)
 	}
@@ -311,6 +346,8 @@ func (r *Repository) getItems(ctx context.Context, tx pgx.Tx, orderUID string) (
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating items: %w", err)
 	}
-
+	if len(items) == 0 {
+		return nil, repository.ErrItemsNotFound
+	}
 	return items, nil
 }

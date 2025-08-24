@@ -1,6 +1,7 @@
-package transport
+package handlers
 
 import (
+	"errors"
 	"github.com/Killazius/L0/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -13,14 +14,14 @@ type Handler struct {
 	service *service.Service
 }
 
-func newHandler(log *zap.SugaredLogger, service *service.Service) *Handler {
+func New(log *zap.SugaredLogger, service *service.Service) *Handler {
 	return &Handler{
 		log:     log,
 		service: service,
 	}
 }
 
-func (h *Handler) Info() http.HandlerFunc {
+func (h *Handler) GetOrder() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		orderUID := chi.URLParam(r, "order_uid")
 		if orderUID == "" {
@@ -30,7 +31,14 @@ func (h *Handler) Info() http.HandlerFunc {
 		}
 		order, err := h.service.GetOrder(r.Context(), orderUID)
 		if err != nil {
-			render.Status(r, http.StatusInternalServerError)
+			switch {
+			case errors.Is(err, service.ErrOrderNotFound):
+				render.Status(r, http.StatusNotFound)
+			case errors.Is(err, service.ErrInvalidOrderData):
+				render.Status(r, http.StatusBadRequest)
+			default:
+				render.Status(r, http.StatusInternalServerError)
+			}
 			return
 		}
 		render.JSON(w, r, order)

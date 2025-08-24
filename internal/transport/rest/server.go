@@ -1,10 +1,11 @@
-package transport
+package rest
 
 import (
 	"context"
 	"errors"
 	"github.com/Killazius/L0/internal/config"
 	"github.com/Killazius/L0/internal/service"
+	"github.com/Killazius/L0/internal/transport/rest/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
@@ -26,11 +27,12 @@ func NewServer(
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.URLFormat)
+	r.Use(newLogger(log))
 
-	handler := newHandler(log, service)
+	handler := handlers.New(log, service)
 
 	r.Route("/order", func(r chi.Router) {
-		r.Get("/{order_uid}", handler.Info())
+		r.Get("/{order_uid}", handler.GetOrder())
 	})
 
 	return &Server{
@@ -47,7 +49,7 @@ func NewServer(
 
 func (s *Server) MustRun() {
 	if err := s.Run(); err != nil {
-		s.log.Fatal("failed to run HTTP-server", zap.Error(err))
+		s.log.Fatalw("failed to run HTTP-server", "error", err)
 	}
 }
 func (s *Server) Run() error {
@@ -60,6 +62,6 @@ func (s *Server) Run() error {
 }
 func (s *Server) Stop(ctx context.Context) {
 	if err := s.server.Shutdown(ctx); err != nil {
-		s.log.Error("failed to stop HTTP server", zap.Error(err))
+		s.log.Errorw("failed to stop HTTP server", "error", err)
 	}
 }

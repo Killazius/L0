@@ -16,11 +16,11 @@ kafka:
     - "kafka:9092"
   topic: "orders"
   group_id: "order-service-group"
-  auto_offset_reset: "earliest" # читать с начала при первом запуске
-  session_timeout: "30s"        # таймаут сессии consumer группы
-  max_wait: "10s"               # максимальное время ожидания новых сообщений
-  min_bytes: 10240              # 10KB - минимум данных для чтения за раз
-  max_bytes: 10485760           # 10MB - максимум данных за одно чтение
-  max_retries: 3               # количество попыток переподключения
-  enable_auto_commit: false     # ручное управление коммитами (рекомендуется)
-  commit_interval: "1s"         # интервал авто-коммита (если enable_auto_commit=true)
+  auto_offset_reset: "earliest"
+  session_timeout: 30s
+  max_wait: 10s
+  min_bytes: 10240
+  max_bytes: 10485760
+  max_retries: 3
+  enable_auto_commit: false
+  commit_interval: 1s

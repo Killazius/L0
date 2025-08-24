@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/Killazius/L0/internal/config"
 	"github.com/Killazius/L0/internal/domain"
 	"github.com/Killazius/L0/internal/service"
@@ -36,6 +37,10 @@ func NewConsumer(logger *zap.SugaredLogger, service *service.Service, cfg config
 	} else {
 		readerConfig.StartOffset = kafka.LastOffset
 	}
+	err := createTopicIfNotExists(cfg, 3, 1)
+	if err != nil {
+		logger.Fatal(err)
+	}
 	reader := kafka.NewReader(readerConfig)
 	return &Consumer{
 		reader:  reader,
@@ -45,13 +50,18 @@ func NewConsumer(logger *zap.SugaredLogger, service *service.Service, cfg config
 }
 
 func (c *Consumer) Run(ctx context.Context) {
+	c.log.Infow("starting kafka consumer",
+		"topic", c.reader.Config().Topic,
+		"group_id", c.reader.Config().GroupID,
+	)
 	for {
 		select {
 		case <-ctx.Done():
+			c.log.Info("stopping kafka consumer due to context cancellation")
 			return
 		default:
 			if err := c.Consume(ctx); err != nil {
-				c.log.Error("Consume", zap.Error(err))
+				c.log.Errorw("Consume", "error", err)
 			}
 		}
 	}
@@ -66,8 +76,13 @@ func (c *Consumer) Consume(ctx context.Context) error {
 	if err = json.Unmarshal(msg.Value, &order); err != nil {
 		return err
 	}
-	c.log.Infow("read order", "order", order)
+	c.log.Infow("read message", "order", order)
 	if err = c.service.CreateOrder(ctx, order); err != nil {
+		if errors.Is(err, service.ErrOrderAlreadyExists) {
+			c.log.Warnw("order already exists", "order_uid", order.OrderUID)
+			return nil
+		}
+		c.log.Errorw("failed to create order", "error", err)
 		return err
 	}
 	if err = c.Commit(ctx, msg); err != nil {
@@ -84,5 +99,6 @@ func (c *Consumer) Commit(ctx context.Context, msg kafka.Message) error {
 	return nil
 }
 func (c *Consumer) Stop() error {
+	c.log.Info("stopping kafka consumer")
 	return c.reader.Close()
 }
