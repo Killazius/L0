@@ -20,6 +20,7 @@ func New(logger *zap.SugaredLogger, cfg *config.Config) *Application {
 	if err != nil {
 		logger.Fatalw("error creating postgres pool", "error", err)
 	}
+	defer pool.Close()
 	orderRepo := postgresql.New(pool)
 	orderService := service.New(orderRepo)
 	return &Application{

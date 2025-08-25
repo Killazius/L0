@@ -37,6 +37,7 @@ type PostgresConfig struct {
 	ConnMaxLifetime time.Duration `yaml:"conn_max_lifetime" env-default:"1h"`
 	ConnMaxIdleTime time.Duration `yaml:"conn_max_idle_time" env-default:"30m"`
 	Timeout         time.Duration `yaml:"timeout" env-default:"5s"`
+	MigrationsPath  string        `yaml:"migrations_path" env-default:"./migrations"`
 }
 
 type LoggerConfig struct {

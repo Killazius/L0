@@ -89,7 +89,6 @@ func (c *Consumer) Consume(ctx context.Context) error {
 		return err
 	}
 	return nil
-
 }
 
 func (c *Consumer) Commit(ctx context.Context, msg kafka.Message) error {
