@@ -49,7 +49,7 @@ func CreatePool(cfg config.PostgresConfig) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-func (r *Repository) Create(ctx context.Context, order domain.Order) error {
+func (r *Repository) Create(ctx context.Context, order *domain.Order) error {
 
 	tx, err := r.DB.Begin(ctx)
 	if err != nil {
@@ -350,4 +350,37 @@ func (r *Repository) getItems(ctx context.Context, tx pgx.Tx, orderUID string) (
 		return nil, repository.ErrItemsNotFound
 	}
 	return items, nil
+}
+
+func (r *Repository) GetAll(ctx context.Context) ([]domain.Order, error) {
+	var orders []domain.Order
+
+	rows, err := r.DB.Query(ctx, "SELECT order_uid FROM orders")
+	if err != nil {
+		return nil, fmt.Errorf("failed to query orders: %w", err)
+	}
+	defer rows.Close()
+
+	var orderUIDs []string
+	for rows.Next() {
+		var orderUID string
+		if err := rows.Scan(&orderUID); err != nil {
+			return nil, fmt.Errorf("failed to scan order_uid: %w", err)
+		}
+		orderUIDs = append(orderUIDs, orderUID)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating orders: %w", err)
+	}
+
+	for _, orderUID := range orderUIDs {
+		order, err := r.Get(ctx, orderUID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get order %s: %w", orderUID, err)
+		}
+		orders = append(orders, *order)
+	}
+
+	return orders, nil
 }

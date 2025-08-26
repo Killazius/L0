@@ -1,3 +1,9 @@
+.PHONY: produce docker test lint
+COUNT ?= 3
+
+produce:
+	go run cmd/kafka/producer.go -m $(COUNT)
+
 docker:
 	docker compose down && docker image prune -f && docker compose up -d --build
 
@@ -6,3 +12,5 @@ test:
 
 lint:
 	golangci-lint run ./...
+
+

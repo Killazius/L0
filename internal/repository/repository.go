@@ -14,7 +14,14 @@ var (
 	ErrDuplicateOrder   = errors.New("duplicate order")
 )
 
-type Repository interface {
-	Create(ctx context.Context, order domain.Order) error
+type OrderRepository interface {
+	Create(ctx context.Context, order *domain.Order) error
 	Get(ctx context.Context, orderUID string) (*domain.Order, error)
+	GetAll(ctx context.Context) ([]domain.Order, error)
+}
+
+type OrderCache interface {
+	Set(ctx context.Context, order *domain.Order) error
+	Get(ctx context.Context, orderUID string) (*domain.Order, error)
+	Restore(ctx context.Context, repo OrderRepository, workers int) error
 }

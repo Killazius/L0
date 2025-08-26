@@ -13,13 +13,13 @@ import (
 )
 
 type Server struct {
-	server *http.Server
+	Server *http.Server
 	log    *zap.SugaredLogger
 }
 
 func NewServer(
 	log *zap.SugaredLogger,
-	service *service.Service,
+	service service.OrderService,
 	cfg config.HTTPConfig,
 ) *Server {
 	r := chi.NewRouter()
@@ -37,7 +37,7 @@ func NewServer(
 
 	return &Server{
 		log: log,
-		server: &http.Server{
+		Server: &http.Server{
 			Addr:         cfg.GetAddr(),
 			ReadTimeout:  cfg.Timeout,
 			WriteTimeout: cfg.Timeout,
@@ -53,15 +53,16 @@ func (s *Server) MustRun() {
 	}
 }
 func (s *Server) Run() error {
-	err := s.server.ListenAndServe()
-
+	s.log.Infow("rest server started", "addr", s.Server.Addr)
+	err := s.Server.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		return nil
 	}
 	return err
 }
-func (s *Server) Stop(ctx context.Context) {
-	if err := s.server.Shutdown(ctx); err != nil {
-		s.log.Errorw("failed to stop HTTP server", "error", err)
+func (s *Server) Close(ctx context.Context) error {
+	if err := s.Server.Shutdown(ctx); err != nil {
+		return err
 	}
+	return nil
 }

@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/Killazius/L0/internal/config"
 	"github.com/Killazius/L0/internal/domain"
 	"github.com/Killazius/L0/internal/service"
+	"github.com/Killazius/L0/pkg/validate"
+	"github.com/go-playground/validator/v10"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 	"time"
@@ -54,6 +57,7 @@ func (c *Consumer) Run(ctx context.Context) {
 		"topic", c.reader.Config().Topic,
 		"group_id", c.reader.Config().GroupID,
 	)
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -61,6 +65,9 @@ func (c *Consumer) Run(ctx context.Context) {
 			return
 		default:
 			if err := c.Consume(ctx); err != nil {
+				if errors.Is(err, context.Canceled) {
+					return
+				}
 				c.log.Errorw("Consume", "error", err)
 			}
 		}
@@ -72,20 +79,33 @@ func (c *Consumer) Consume(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	var order domain.Order
+	var order *domain.Order
 	if err = json.Unmarshal(msg.Value, &order); err != nil {
 		return err
 	}
-	c.log.Infow("read message", "order", order)
+	valid := validator.New()
+	if err := validate.RegisterCustomValidations(valid); err != nil {
+		return fmt.Errorf("failed to register custom validations: %w", err)
+	}
+	if err = valid.Struct(order); err != nil {
+		var validateErrs validator.ValidationErrors
+		if errors.As(err, &validateErrs) {
+			return fmt.Errorf("validation failed: %w", validateErrs)
+		}
+		return fmt.Errorf("validation error: %w", err)
+	}
+	log := c.log.With(zap.String("order_uid", order.OrderUID))
+	log.Infow("read message")
 	if err = c.service.CreateOrder(ctx, order); err != nil {
 		if errors.Is(err, service.ErrOrderAlreadyExists) {
-			c.log.Warnw("order already exists", "order_uid", order.OrderUID)
+			log.Warnw("order already exists")
 			return nil
 		}
-		c.log.Errorw("failed to create order", "error", err)
+		log.Errorw("failed to create order", "error", err)
 		return err
 	}
 	if err = c.Commit(ctx, msg); err != nil {
+		log.Errorw("failed to commit message", "error", err)
 		return err
 	}
 	return nil
@@ -97,7 +117,6 @@ func (c *Consumer) Commit(ctx context.Context, msg kafka.Message) error {
 	}
 	return nil
 }
-func (c *Consumer) Stop() error {
-	c.log.Info("stopping kafka consumer")
+func (c *Consumer) Close() error {
 	return c.reader.Close()
 }

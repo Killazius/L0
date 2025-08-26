@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
 	cfg := config.MustLoad()
 	log, err := logger.LoadFromConfig(cfg.Logger.Path)
 	if err != nil {
@@ -23,11 +24,10 @@ func main() {
 		}
 	}
 	app := application.New(log, cfg)
-	go app.Server.MustRun()
-	log.Infow("http-server start", "HTTP", cfg.HTTPServer.GetAddr())
-	go app.Consumer.Run(context.Background())
-	log.Infow("kafka-consumer start", "Kafka brokers", cfg.Kafka.Brokers)
+	app.Run(ctx)
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 	<-stop
+	cancel()
+	app.Stop()
 }

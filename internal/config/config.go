@@ -15,6 +15,7 @@ type Config struct {
 	Logger     LoggerConfig   `yaml:"logger"`
 	HTTPServer HTTPConfig     `yaml:"http_server"`
 	Kafka      KafkaConfig    `yaml:"kafka"`
+	Redis      RedisConfig    `yaml:"redis"`
 }
 
 type HTTPConfig struct {
@@ -39,7 +40,11 @@ type PostgresConfig struct {
 	Timeout         time.Duration `yaml:"timeout" env-default:"5s"`
 	MigrationsPath  string        `yaml:"migrations_path" env-default:"./migrations"`
 }
-
+type RedisConfig struct {
+	Address  string `env:"REDIS_ADDR" env-required:"true"`
+	Password string `env:"REDIS_PASSWORD" env-required:"true"`
+	DB       int    `env:"REDIS_DB" env-default:"0"`
+}
 type LoggerConfig struct {
 	Path string `yaml:"path"`
 }
