@@ -22,7 +22,8 @@ COPY --from=app-builder /cmd/app .
 RUN mkdir -p /config
 COPY --from=app-builder /cmd/config/ ./config/
 COPY --from=app-builder /cmd/.env .
-COPY --from=builder /cmd/docs .
+COPY --from=app-builder /cmd/docs ./docs/
+COPY --from=app-builder /cmd/static ./static/
 CMD ["./app"]
 
 

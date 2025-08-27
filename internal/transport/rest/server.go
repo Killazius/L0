@@ -38,6 +38,7 @@ func NewServer(
 	swaggerURL := fmt.Sprintf("http://localhost:%s/swagger/doc.json", cfg.Port)
 	r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(swaggerURL)))
 
+	r.Handle("/*", http.FileServer(http.Dir("./static")))
 	return &Server{
 		log: log,
 		Server: &http.Server{
