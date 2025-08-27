@@ -1,17 +1,32 @@
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
     - errcheck
     - goconst
     - gosec
     - govet
     - ineffassign
-    - gosimple
-    - staticcheck
-    - unused
-    - revive
-    - typecheck
     - paralleltest
+    - revive
+    - staticcheck
     - testifylint
-
-
+    - unused
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

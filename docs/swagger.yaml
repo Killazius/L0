@@ -1,0 +1,208 @@
+basePath: /
+definitions:
+  domain.Delivery:
+    properties:
+      address:
+        type: string
+      city:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      region:
+        type: string
+      zip:
+        type: string
+    required:
+    - address
+    - city
+    - email
+    - name
+    - phone
+    - region
+    - zip
+    type: object
+  domain.Item:
+    properties:
+      brand:
+        type: string
+      chrt_id:
+        minimum: 0
+        type: integer
+      name:
+        type: string
+      nm_id:
+        minimum: 0
+        type: integer
+      price:
+        type: number
+      rid:
+        type: string
+      sale:
+        maximum: 100
+        minimum: 0
+        type: integer
+      size:
+        type: string
+      status:
+        minimum: 0
+        type: integer
+      total_price:
+        type: number
+      track_number:
+        type: string
+    required:
+    - brand
+    - chrt_id
+    - name
+    - nm_id
+    - price
+    - rid
+    - size
+    - status
+    - total_price
+    - track_number
+    type: object
+  domain.Order:
+    description: Order information
+    properties:
+      customer_id:
+        type: string
+      date_created:
+        type: string
+      delivery:
+        $ref: '#/definitions/domain.Delivery'
+      delivery_service:
+        type: string
+      entry:
+        type: string
+      internal_signature:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/domain.Item'
+        minItems: 1
+        type: array
+      locale:
+        type: string
+      oof_shard:
+        type: string
+      order_uid:
+        type: string
+      payment:
+        $ref: '#/definitions/domain.Payment'
+      shardkey:
+        type: string
+      sm_id:
+        minimum: 0
+        type: integer
+      track_number:
+        type: string
+    required:
+    - customer_id
+    - date_created
+    - delivery
+    - delivery_service
+    - entry
+    - items
+    - locale
+    - oof_shard
+    - order_uid
+    - payment
+    - shardkey
+    - sm_id
+    - track_number
+    type: object
+  domain.Payment:
+    properties:
+      amount:
+        type: number
+      bank:
+        type: string
+      currency:
+        type: string
+      custom_fee:
+        minimum: 0
+        type: integer
+      delivery_cost:
+        type: number
+      goods_total:
+        minimum: 0
+        type: integer
+      payment_dt:
+        minimum: 0
+        type: integer
+      provider:
+        type: string
+      request_id:
+        type: string
+      transaction:
+        type: string
+    required:
+    - amount
+    - bank
+    - currency
+    - delivery_cost
+    - goods_total
+    - payment_dt
+    - provider
+    - transaction
+    type: object
+  handlers.ErrorResponse:
+    description: Error response structure
+    properties:
+      code:
+        example: 404
+        type: integer
+      error:
+        example: order not found
+        type: string
+      message:
+        example: The requested order was not found
+        type: string
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  description: Test task. Demo service with Kafka, PostgreSQL, cache
+  termsOfService: http://swagger.io/terms/
+  title: WB L0 API
+  version: "1.0"
+paths:
+  /order/{order_uid}:
+    get:
+      consumes:
+      - application/json
+      description: Get order details by order UID
+      parameters:
+      - description: Order UID
+        in: path
+        name: order_uid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Order details
+          schema:
+            $ref: '#/definitions/domain.Order'
+        "400":
+          description: Invalid order UID
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "404":
+          description: Order not found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get order by UID
+      tags:
+      - orders
+swagger: "2.0"

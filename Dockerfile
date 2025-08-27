@@ -7,6 +7,8 @@ COPY . .
 
 
 FROM builder AS app-builder
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN swag init -g ./cmd/app/main.go -o ./docs
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o app ./cmd/app/
 
 FROM builder AS migrator-builder
@@ -20,6 +22,7 @@ COPY --from=app-builder /cmd/app .
 RUN mkdir -p /config
 COPY --from=app-builder /cmd/config/ ./config/
 COPY --from=app-builder /cmd/.env .
+COPY --from=builder /cmd/docs .
 CMD ["./app"]
 
 

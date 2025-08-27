@@ -3,11 +3,13 @@ package rest
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/Killazius/L0/internal/config"
 	"github.com/Killazius/L0/internal/service"
 	"github.com/Killazius/L0/internal/transport/rest/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -25,15 +27,16 @@ func NewServer(
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
-	r.Use(middleware.Recoverer)
 	r.Use(middleware.URLFormat)
 	r.Use(newLogger(log))
+	r.Use(middleware.Recoverer)
 
 	handler := handlers.New(log, service)
-
 	r.Route("/order", func(r chi.Router) {
 		r.Get("/{order_uid}", handler.GetOrder())
 	})
+	swaggerURL := fmt.Sprintf("http://localhost:%s/swagger/doc.json", cfg.Port)
+	r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(swaggerURL)))
 
 	return &Server{
 		log: log,

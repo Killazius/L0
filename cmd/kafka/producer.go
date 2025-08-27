@@ -63,7 +63,7 @@ func main() {
 
 func generateTestOrder() domain.Order {
 	return domain.Order{
-		OrderUID:    strings.Replace(gofakeit.UUID(), "-", "", -1),
+		OrderUID:    strings.ReplaceAll(gofakeit.UUID(), "-", ""),
 		TrackNumber: "WBILMTESTTRACK",
 		Entry:       "WBIL",
 		Delivery: domain.Delivery{
@@ -76,7 +76,7 @@ func generateTestOrder() domain.Order {
 			Email:   gofakeit.Email(),
 		},
 		Payment: domain.Payment{
-			Transaction:  strings.Replace(gofakeit.UUID(), "-", "", -1),
+			Transaction:  strings.ReplaceAll(gofakeit.UUID(), "-", ""),
 			RequestID:    gofakeit.Numerify("####"),
 			Currency:     gofakeit.CurrencyShort(),
 			Provider:     gofakeit.RandomString([]string{"wbpay", "sberpay", "alipay"}),
@@ -92,7 +92,7 @@ func generateTestOrder() domain.Order {
 				ChrtID:      gofakeit.Number(100000, 999999),
 				TrackNumber: "WBILMTESTTRACK",
 				Price:       decimal.NewFromFloat(gofakeit.Float64()),
-				Rid:         strings.Replace(gofakeit.UUID(), "-", "", -1),
+				Rid:         strings.ReplaceAll(gofakeit.UUID(), "-", ""),
 				Name:        gofakeit.ProductName(),
 				Sale:        gofakeit.Number(0, 50),
 				Size:        gofakeit.Numerify("#"),
@@ -104,7 +104,7 @@ func generateTestOrder() domain.Order {
 		},
 		Locale:            gofakeit.LanguageAbbreviation(),
 		InternalSignature: gofakeit.RandomString([]string{"warehouse", "", "pvz"}),
-		CustomerID:        strings.Replace(gofakeit.UUID(), "-", "", -1),
+		CustomerID:        strings.ReplaceAll(gofakeit.UUID(), "-", ""),
 		DeliveryService:   gofakeit.RandomString([]string{"wb", "ali", "ozon"}),
 		ShardKey:          gofakeit.Numerify("##"),
 		SmID:              gofakeit.Number(0, 100),

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	_ "github.com/Killazius/L0/docs"
 	"github.com/Killazius/L0/internal/application"
 	"github.com/Killazius/L0/internal/config"
 	"github.com/Killazius/L0/internal/logger"
@@ -11,6 +12,12 @@ import (
 	"syscall"
 )
 
+// @title WB L0 API
+// @version 1.0
+// @description Test task. Demo service with Kafka, PostgreSQL, cache
+// @termsOfService http://swagger.io/terms/
+// @host localhost:8081
+// @BasePath /
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	cfg := config.MustLoad()
