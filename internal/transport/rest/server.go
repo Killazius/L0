@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Killazius/L0/internal/config"
-	"github.com/Killazius/L0/internal/service"
-	"github.com/Killazius/L0/internal/transport/rest/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -15,40 +13,47 @@ import (
 )
 
 type Server struct {
-	Server *http.Server
+	server *http.Server
 	log    *zap.SugaredLogger
+}
+
+type Handler interface {
+	GetOrder() http.HandlerFunc
 }
 
 func NewServer(
 	log *zap.SugaredLogger,
-	service service.OrderService,
+	handler Handler,
 	cfg config.HTTPConfig,
 ) *Server {
-	r := chi.NewRouter()
 
-	r.Use(middleware.RequestID)
-	r.Use(middleware.URLFormat)
-	r.Use(newLogger(log))
-	r.Use(middleware.Recoverer)
-
-	handler := handlers.New(log, service)
-	r.Route("/order", func(r chi.Router) {
-		r.Get("/{order_uid}", handler.GetOrder())
-	})
-	swaggerURL := fmt.Sprintf("http://localhost:%s/swagger/doc.json", cfg.Port)
-	r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(swaggerURL)))
-
-	r.Handle("/*", http.FileServer(http.Dir("./static")))
 	return &Server{
 		log: log,
-		Server: &http.Server{
+		server: &http.Server{
 			Addr:         cfg.GetAddr(),
 			ReadTimeout:  cfg.Timeout,
 			WriteTimeout: cfg.Timeout,
 			IdleTimeout:  cfg.IdleTimeout,
-			Handler:      r,
+			Handler:      registerRoutes(handler, log, cfg.Port),
 		},
 	}
+}
+
+func registerRoutes(h Handler, log *zap.SugaredLogger, port string) *chi.Mux {
+	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.URLFormat)
+	r.Use(logMiddleware(log))
+	r.Use(middleware.Recoverer)
+
+	r.Route("/order", func(r chi.Router) {
+		r.Get("/{order_uid}", h.GetOrder())
+	})
+	swaggerURL := fmt.Sprintf("http://localhost:%s/swagger/doc.json", port)
+	r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(swaggerURL)))
+
+	r.Handle("/*", http.FileServer(http.Dir("./static")))
+	return r
 }
 
 func (s *Server) MustRun() {
@@ -57,16 +62,19 @@ func (s *Server) MustRun() {
 	}
 }
 func (s *Server) Run() error {
-	s.log.Infow("rest server started", "addr", s.Server.Addr)
-	err := s.Server.ListenAndServe()
+	s.log.Infow("rest server started", "addr", s.Addr())
+	err := s.server.ListenAndServe()
 	if errors.Is(err, http.ErrServerClosed) {
 		return nil
 	}
 	return err
 }
 func (s *Server) Close(ctx context.Context) error {
-	if err := s.Server.Shutdown(ctx); err != nil {
+	if err := s.server.Shutdown(ctx); err != nil {
 		return err
 	}
 	return nil
+}
+func (s *Server) Addr() string {
+	return s.server.Addr
 }

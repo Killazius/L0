@@ -8,6 +8,7 @@ import (
 	"github.com/Killazius/L0/internal/repository/postgresql"
 	"github.com/Killazius/L0/internal/service"
 	"github.com/Killazius/L0/internal/transport/rest"
+	"github.com/Killazius/L0/internal/transport/rest/handlers"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -17,8 +18,8 @@ import (
 
 type Application struct {
 	log         *zap.SugaredLogger
-	Server      *rest.Server
-	Consumer    *kafka.Consumer
+	server      *rest.Server
+	consumer    *kafka.Consumer
 	pool        *pgxpool.Pool
 	cacheClient *redis.Client
 	wg          sync.WaitGroup
@@ -41,19 +42,21 @@ func New(log *zap.SugaredLogger, cfg *config.Config) *Application {
 	}
 
 	orderService := service.New(orderRepo, orderCache)
+	handler := handlers.New(log, orderService)
+
 	return &Application{
 		log:         log,
-		Server:      rest.NewServer(log, orderService, cfg.HTTPServer),
-		Consumer:    kafka.NewConsumer(log, orderService, cfg.Kafka),
+		server:      rest.NewServer(log, handler, cfg.HTTPServer),
+		consumer:    kafka.NewConsumer(log, orderService, cfg.Kafka),
 		pool:        pool,
 		cacheClient: client,
 	}
 }
 
 func (a *Application) Run(ctx context.Context) {
-	a.wg.Go(a.Server.MustRun)
+	a.wg.Go(a.server.MustRun)
 	a.wg.Go(func() {
-		a.Consumer.Run(ctx)
+		a.consumer.Run(ctx)
 	})
 }
 
@@ -61,12 +64,12 @@ func (a *Application) Stop() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	a.log.Info("closing HTTP server")
-	if err := a.Server.Close(ctx); err != nil {
+	if err := a.server.Close(ctx); err != nil {
 		a.log.Errorw("failed to stop HTTP server gracefully", "error", err)
 	}
 
 	a.log.Info("closing Kafka consumer")
-	if err := a.Consumer.Close(); err != nil {
+	if err := a.consumer.Close(); err != nil {
 		a.log.Errorw("failed to stop Kafka consumer gracefully", "error", err)
 	}
 	a.log.Info("closing database connections")

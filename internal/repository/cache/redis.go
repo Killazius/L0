@@ -9,7 +9,6 @@ import (
 	"github.com/Killazius/L0/internal/domain"
 	"github.com/Killazius/L0/internal/repository"
 	"github.com/redis/go-redis/v9"
-	"golang.org/x/sync/errgroup"
 	"time"
 )
 
@@ -65,27 +64,4 @@ func (c *Cache) Get(ctx context.Context, orderUID string) (*domain.Order, error)
 	}
 
 	return &order, nil
-}
-
-func (c *Cache) Restore(ctx context.Context, repo repository.OrderRepository, workers int) error {
-	orders, err := repo.GetAll(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get all orders: %w", err)
-	}
-
-	g, ctx := errgroup.WithContext(ctx)
-	g.SetLimit(workers)
-
-	for _, order := range orders {
-		order := order
-		g.Go(func() error {
-			return c.Set(ctx, &order)
-		})
-	}
-
-	if err := g.Wait(); err != nil {
-		return fmt.Errorf("failed to restore orders: %w", err)
-	}
-
-	return nil
 }

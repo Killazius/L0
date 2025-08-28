@@ -1,9 +1,7 @@
 package repository
 
 import (
-	"context"
 	"errors"
-	"github.com/Killazius/L0/internal/domain"
 )
 
 var (
@@ -13,15 +11,3 @@ var (
 	ErrItemsNotFound    = errors.New("items not found")
 	ErrDuplicateOrder   = errors.New("duplicate order")
 )
-
-type OrderRepository interface {
-	Create(ctx context.Context, order *domain.Order) error
-	Get(ctx context.Context, orderUID string) (*domain.Order, error)
-	GetAll(ctx context.Context) ([]domain.Order, error)
-}
-
-type OrderCache interface {
-	Set(ctx context.Context, order *domain.Order) error
-	Get(ctx context.Context, orderUID string) (*domain.Order, error)
-	Restore(ctx context.Context, repo OrderRepository, workers int) error
-}

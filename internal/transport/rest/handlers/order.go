@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"context"
 	"errors"
+	"github.com/Killazius/L0/internal/domain"
 	"github.com/Killazius/L0/internal/lib/api/response"
 	"github.com/Killazius/L0/internal/service"
 	"github.com/go-chi/chi/v5"
@@ -10,12 +12,16 @@ import (
 	"net/http"
 )
 
-type Handler struct {
-	log     *zap.SugaredLogger
-	service service.OrderService
+type OrderService interface {
+	GetOrder(ctx context.Context, uid string) (*domain.Order, error)
 }
 
-func New(log *zap.SugaredLogger, service service.OrderService) *Handler {
+type Handler struct {
+	log     *zap.SugaredLogger
+	service OrderService
+}
+
+func New(log *zap.SugaredLogger, service OrderService) *Handler {
 	return &Handler{
 		log:     log,
 		service: service,
@@ -69,7 +75,7 @@ func (h *Handler) GetOrder() http.HandlerFunc {
 			render.JSON(w, r, response.NewErrorResponse("order not found", http.StatusNotFound, "The requested order was not found in the system"))
 			return
 		}
-		log.Infow("got order", "order", order)
+		log.Info("success get order")
 		render.JSON(w, r, order)
 	}
 }
