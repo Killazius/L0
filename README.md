@@ -36,5 +36,8 @@ GET /swagger/ - документация swagger
 ```
 
 ### kafka producer
-`make produce. COUNT=(x). default COUNT = 3`
+для того, чтобы отправить сообщения в кафку, написан скрипт, запустить его можно путем команды:
+`make produce`
+`COUNT=(x). default COUNT = 3`
+
 
