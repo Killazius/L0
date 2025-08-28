@@ -10,9 +10,13 @@
 
 ### run
 1. copy code
-`git clone https://github.com/Killazius/L0.git && cd L0`
+```bash
+git clone https://github.com/Killazius/L0.git && cd L0
+```
 2. make .env file
-`cp .env.example .env`
+```bash
+cp .env.example .env
+```
 ```env
 POSTGRES_HOST="postgres"
 POSTGRES_PORT="5432"
@@ -26,7 +30,9 @@ REDIS_PASSWORD="redis"
 REDIS_DB=0
 ```
 3. run service
-`make docker OR docker compose up -d`
+```bash
+make docker OR docker compose up -d
+```
 
 ### api endpoints
 ```
@@ -37,7 +43,9 @@ GET /swagger/ - документация swagger
 
 ### kafka producer
 для того, чтобы отправить сообщения в кафку, написан скрипт, запустить его можно путем команды:
-`make produce`
+```bash
+make produce
+```
 `COUNT=(x). default COUNT = 3`
 
 
