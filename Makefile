@@ -1,5 +1,5 @@
 .PHONY: produce docker test lint
-COUNT ?= 3
+COUNT ?= 1
 
 produce:
 	go run cmd/kafka/producer.go -m $(COUNT)

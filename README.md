@@ -7,7 +7,70 @@
 Необходимо разработать демонстрационный сервис с простейшим интерфейсом, отображающий данные о заказе.
 Данное задание предполагает создание небольшого микросервиса на Go с использованием базы данных и очереди сообщений. 
 Сервис будет получать данные заказов из очереди (Kafka), сохранять их в базу данных (PostgreSQL) и кэшировать в памяти для быстрого доступа.
-
+### DDD architecture
+```
+project/
+├── cmd/                          # entry points
+│   ├── app/                      # main application
+│   │   └── main.go
+│   ├── kafka/                    # kafka producer
+│   │   └── producer.go
+│   └── migrator/                 # database migrator
+│       └── main.go
+├── config/                       # configuration files
+│   ├── config.yaml                 # http-server,postresql,kafka,logger
+│   └── logger.json                 # zap.logger
+├── docs/                         # autogen swagger doc
+│   ├── docs.go
+│   ├── swagger.json
+│   └── swagger.yaml
+├── internal/                     
+│   ├── application/              # application layer
+│   │   ├── kafka/                  # kafka (consume,read,commit,create topic)
+│   │   │   ├── consumer.go
+│   │   │   ├── topic.go
+│   │   └── app.go                  # application (run,stop)
+│   ├── config/                   # configuration
+│   │   └── config.go
+│   └── domain/                   # domain layer (order struct)
+│       └── order.go
+├── lib/                          # shared libraries
+│   ├── api/
+│   │   └── response/
+│   │       └── response.go       
+│   ├── logger/
+│   │   └── logger.go
+│   ├── repository/               # repository layer
+│   │   ├── cache/                  # cache (redis)
+│   │   │   ├── redis.go
+│   │   │   └── restore.go
+│   │   ├── postgresql/             # database (postgresql)
+│   │   │   └── postgresql.go
+│   │   └── repository.go         # errors
+│   ├── service/                  # service layer
+│   │   ├── operations.go           # methods
+│   │   └── service.go              # errors, const, interfaces
+│   └── transport/                # transport layer
+│       └── rest/
+│           ├── handlers/
+│           │   └── order.go        
+│           ├── server.go           
+│           └── middleware.go       
+├── migrations/                   # migrations
+│   └── 00001_init.sql
+├── pkg/                          # public packages
+│   ├── validate/                  
+│   │   └── order.go              
+│   └── static/                   # static files
+│       └── index.html
+├── .env.example                  # .env example
+├── .gitignore
+├── .golangci.yml                 # golangci-lint configuration
+├── docker-compose.yaml           
+├── Dockerfile                    
+├── go.mod                        
+└── Makefile                      # utility (produce,lint,test,docker)
+```
 ### run
 1. copy code
 ```bash
@@ -46,6 +109,6 @@ GET /swagger/ - документация swagger
 ```bash
 make produce
 ```
-`COUNT=(x). default COUNT = 3`
+`COUNT=(x). default COUNT = 1`
 
 
