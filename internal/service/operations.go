@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Killazius/L0/internal/domain"
 	"github.com/Killazius/L0/internal/repository"
+	"github.com/Killazius/L0/pkg/validate"
 	"go.uber.org/zap"
 )
 
@@ -48,11 +49,14 @@ func (s *Service) GetOrder(ctx context.Context, uid string) (*domain.Order, erro
 }
 
 func (s *Service) CreateOrder(ctx context.Context, order *domain.Order) error {
+	if err := validate.Order(order); err != nil {
+		return fmt.Errorf("%w: %w", ErrInvalidOrderData, err)
+	}
 	err := s.repo.Create(ctx, order)
 	if err != nil {
 		switch {
 		case errors.Is(err, repository.ErrDuplicateOrder):
-			return fmt.Errorf("%w: %s", ErrOrderAlreadyExists, order.OrderUID)
+			return ErrOrderAlreadyExists
 		default:
 			return fmt.Errorf("failed to create order: %w", err)
 		}
