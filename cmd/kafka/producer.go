@@ -21,11 +21,11 @@ func main() {
 	flag.Parse()
 	brokers := []string{"localhost:29092"}
 	topic := "orders"
-	producer := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:  brokers,
+	producer := &kafka.Writer{
+		Addr:     kafka.TCP(brokers...),
 		Topic:    topic,
 		Balancer: &kafka.LeastBytes{},
-	})
+	}
 	defer producer.Close()
 	log, err := logger.LoadFromConfig(defaultLoggerPath)
 	if err != nil {
