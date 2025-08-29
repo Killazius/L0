@@ -1,4 +1,4 @@
-.PHONY: produce docker test lint
+.PHONY: produce docker test lint swag
 COUNT ?= 1
 
 produce:
@@ -13,4 +13,5 @@ test:
 lint:
 	golangci-lint run ./...
 
-
+swag:
+	swag init -g ./cmd/app/main.go -o ./docs

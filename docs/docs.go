@@ -48,19 +48,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid order UID",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Order not found",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ErrorResponse"
+                            "$ref": "#/definitions/response.ErrorResponse"
                         }
                     }
                 }
@@ -81,25 +81,32 @@ const docTemplate = `{
             ],
             "properties": {
                 "address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Ploshad Mira 15"
                 },
                 "city": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Kiryat Mozkin"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "test@gmail.com"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Test Testov"
                 },
                 "phone": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "+9720000000"
                 },
                 "region": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Kraiot"
                 },
                 "zip": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2639809"
                 }
             }
         },
@@ -119,42 +126,53 @@ const docTemplate = `{
             ],
             "properties": {
                 "brand": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Vivienne Sabo"
                 },
                 "chrt_id": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 9934930
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Mascaras"
                 },
                 "nm_id": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 2389212
                 },
                 "price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 453
                 },
                 "rid": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "ab4219087a764ae0btest"
                 },
                 "sale": {
                     "type": "integer",
                     "maximum": 100,
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 30
                 },
                 "size": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "0"
                 },
                 "status": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 202
                 },
                 "total_price": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 317
                 },
                 "track_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "WBILMTESTTRACK"
                 }
             }
         },
@@ -178,22 +196,27 @@ const docTemplate = `{
             ],
             "properties": {
                 "customer_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "test"
                 },
                 "date_created": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2021-11-26T06:22:19Z"
                 },
                 "delivery": {
                     "$ref": "#/definitions/domain.Delivery"
                 },
                 "delivery_service": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "meest"
                 },
                 "entry": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "WBIL"
                 },
                 "internal_signature": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                 },
                 "items": {
                     "type": "array",
@@ -203,26 +226,32 @@ const docTemplate = `{
                     }
                 },
                 "locale": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "en"
                 },
                 "oof_shard": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1"
                 },
                 "order_uid": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "b563feb7b2b84b6test"
                 },
                 "payment": {
                     "$ref": "#/definitions/domain.Payment"
                 },
                 "shardkey": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "9"
                 },
                 "sm_id": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 99
                 },
                 "track_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "WBILMTESTTRACK"
                 }
             }
         },
@@ -240,55 +269,62 @@ const docTemplate = `{
             ],
             "properties": {
                 "amount": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 1817
                 },
                 "bank": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "alpha"
                 },
                 "currency": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "USD"
                 },
                 "custom_fee": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 0
                 },
                 "delivery_cost": {
-                    "type": "number"
+                    "type": "number",
+                    "example": 1500
                 },
                 "goods_total": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 317
                 },
                 "payment_dt": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 1637907727
                 },
                 "provider": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "wbpay"
                 },
                 "request_id": {
-                    "type": "string"
+                    "type": "string",
+                    "example": ""
                 },
                 "transaction": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "b563feb7b2b84b6test"
                 }
             }
         },
-        "handlers.ErrorResponse": {
+        "response.ErrorResponse": {
             "description": "Error response structure",
             "type": "object",
             "properties": {
                 "code": {
-                    "type": "integer",
-                    "example": 404
+                    "type": "integer"
                 },
                 "error": {
-                    "type": "string",
-                    "example": "order not found"
+                    "type": "string"
                 },
                 "message": {
-                    "type": "string",
-                    "example": "The requested order was not found"
+                    "type": "string"
                 }
             }
         }
