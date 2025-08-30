@@ -12,6 +12,16 @@ linters:
     - staticcheck
     - testifylint
     - unused
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - canonicalheader
+    - ireturn
+    - nilnil
+    - testifylint
+    - unparam
+    - rowserrcheck
   exclusions:
     generated: lax
     presets:
