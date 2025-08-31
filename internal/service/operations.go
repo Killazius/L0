@@ -15,6 +15,9 @@ func (s *Service) GetOrder(ctx context.Context, uid string) (*domain.Order, erro
 	defer cancel()
 	order, err := s.cache.Get(cacheCtx, uid)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+			return nil, fmt.Errorf("cache operation canceled: %w", err)
+		}
 		if !errors.Is(err, repository.ErrOrderNotFound) {
 			zap.L().Warn("cache error, falling back to database", zap.String("order_uid", uid), zap.Error(err))
 		}
@@ -32,15 +35,13 @@ func (s *Service) GetOrder(ctx context.Context, uid string) (*domain.Order, erro
 				return nil, fmt.Errorf("failed to get order from database: %w", err)
 			}
 		}
-
-		go func() {
+		s.wg.Go(func() {
 			cacheCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), cacheTimeout)
 			defer cancel()
 			if err := s.cache.Set(cacheCtx, order); err != nil && !errors.Is(err, context.Canceled) {
 				zap.L().Warn("failed to cache order", zap.String("order_uid", uid), zap.Error(err))
 			}
-
-		}()
+		})
 		zap.L().Info("from database", zap.String("uid", uid))
 		return order, nil
 	}
@@ -49,6 +50,9 @@ func (s *Service) GetOrder(ctx context.Context, uid string) (*domain.Order, erro
 }
 
 func (s *Service) CreateOrder(ctx context.Context, order *domain.Order) error {
+	if order == nil {
+		return fmt.Errorf("%w: order is nil", ErrInvalidOrderData)
+	}
 	if err := validate.Order(order); err != nil {
 		return fmt.Errorf("%w: %w", ErrInvalidOrderData, err)
 	}
@@ -61,14 +65,13 @@ func (s *Service) CreateOrder(ctx context.Context, order *domain.Order) error {
 			return fmt.Errorf("failed to create order: %w", err)
 		}
 	}
-	go func() {
+	s.wg.Go(func() {
 		cacheCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), cacheTimeout)
 		defer cancel()
 		if err := s.cache.Set(cacheCtx, order); err != nil && !errors.Is(err, context.Canceled) {
 			zap.L().Warn("failed to cache order", zap.String("order_uid", order.OrderUID), zap.Error(err))
 		}
-
-	}()
+	})
 
 	return nil
 }

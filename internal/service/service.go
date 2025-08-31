@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/Killazius/L0/internal/domain"
+	"sync"
 	"time"
 )
 
@@ -31,6 +32,7 @@ type OrderCache interface {
 type Service struct {
 	repo  OrderRepository
 	cache OrderCache
+	wg    sync.WaitGroup
 }
 
 func New(repo OrderRepository, cache OrderCache) *Service {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Killazius/L0/internal/application/kafka"
 	"github.com/Killazius/L0/internal/config"
+	"github.com/Killazius/L0/internal/repository"
 	"github.com/Killazius/L0/internal/repository/cache"
 	"github.com/Killazius/L0/internal/repository/postgresql"
 	"github.com/Killazius/L0/internal/service"
@@ -37,7 +38,7 @@ func New(log *zap.SugaredLogger, cfg *config.Config) *Application {
 	orderRepo := postgresql.New(pool)
 	orderCache := cache.New(client)
 
-	if err = orderCache.Restore(context.Background(), orderRepo, 10); err != nil {
+	if err = repository.Restore(context.Background(), orderRepo, orderCache, 10); err != nil {
 		log.Fatalw("error restoring order", "error", err)
 	}
 
